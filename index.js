@@ -16,7 +16,8 @@ var get = require('get-value');
  *
  * @param  {Array} `arr` The Array to sort.
  * @param  {String|Array|Function} `props` One or more object paths or comparison functions.
- * @param  {Object} `opts` Pass `{ reverse: true }` to reverse the sort order.
+ * @param  {Object} `opts` Pass `{ reverse: true }` to reverse the sort order
+ * and `{ caseSensitive: true }` to stop ignoring capitalization.
  * @return {Array} Returns a sorted array.
  * @api public
  */
@@ -49,7 +50,8 @@ function arraySort(arr, props, opts) {
  * is returned.
  *
  * @param  {String|Array|Function} `props` One or more object paths or comparison functions.
- * @param  {Object} `opts` Pass `{ reverse: true }` to reverse the sort order.
+ * @param  {Object} `opts` Pass `{ reverse: true }` to reverse the sort order
+ * and `{ caseSensitive: true }` to stop ignoring capitalization.
  * @return {Array}
  */
 
@@ -59,9 +61,9 @@ function sortBy(props, opts) {
   return function compareFn(a, b) {
     var len = props.length, i = -1;
     var result;
-
+    
     while (++i < len) {
-      result = compare(props[i], a, b);
+      result = compare(props[i], a, b, opts.caseSensitive);
       if (result !== 0) {
         break;
       }
@@ -78,14 +80,19 @@ function sortBy(props, opts) {
  * `a[prop]` is compared to `b[prop]`
  */
 
-function compare(prop, a, b) {
+function compare(prop, a, b, caseSensitive) {
+  if (!caseSensitive && typeof a === 'string' && typeof b === 'string') {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+  }
+
   if (typeof prop === 'function') {
     // expose `compare` to custom function
     return prop(a, b, compare.bind(null, null));
   }
   // compare object values
   if (prop && typeof a === 'object' && typeof b === 'object') {
-    return compare(null, get(a, prop), get(b, prop));
+    return compare(null, get(a, prop), get(b, prop), caseSensitive);
   }
   return defaultCompare(a, b);
 }
