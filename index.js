@@ -59,16 +59,20 @@ function sortBy(props, opts) {
   opts = opts || {};
 
   return function compareFn(a, b) {
-    var len = props.length, i = -1;
+    var len = props.length, i = -1, reverseProp = false;
     var result;
-    
+    var prop;
+
     while (++i < len) {
-      result = compare(props[i], a, b, opts.caseSensitive);
+      reverseProp = (typeof props[i] === 'string' && props[i][0] === '-');
+      prop = reverseProp ? props[i].slice(1) : props[i];
+      result = compare(prop, a, b, opts.caseSensitive);
       if (result !== 0) {
         break;
       }
     }
-    if (opts.reverse === true) {
+    // `reverse` option XOR "-prop" to reverse
+    if (!!opts.reverse !== reverseProp) {
       return result * -1;
     }
     return result;
